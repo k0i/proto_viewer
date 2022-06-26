@@ -16,13 +16,13 @@ export default async function handler(
     "127.0.0.1:50051",
     credentials.createInsecure()
   );
-  const req = new ServerReflectionRequest();
-  req.setListServices("1");
+  const rpcReq = new ServerReflectionRequest();
+  rpcReq.setListServices("1");
 
   return res.status(200).json(
     await reflectAsync<ServerReflectionResponse, GrpcServices>(
       client,
-      req,
+      rpcReq,
       (str) => {
         const res = str.getListServicesResponse();
         return res

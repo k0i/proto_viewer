@@ -1,7 +1,6 @@
 import { ServerReflectionClient } from "../gen/src/reflection_grpc_pb";
 import { ServerReflectionRequest } from "../gen/src/reflection_pb";
 
-
 export const reflectAsync = <T, U>(
   client: ServerReflectionClient,
   req: ServerReflectionRequest,

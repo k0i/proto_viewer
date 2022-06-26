@@ -1,53 +1,51 @@
 import { credentials } from "@grpc/grpc-js";
 import type { NextApiResponse } from "next";
 import { ServerReflectionClient } from "../../gen/src/reflection_grpc_pb";
-import { ServerReflectionRequest } from "../../gen/src/reflection_pb";
-import descriptor from "protobufjs/ext/descriptor";
 import {
-  FileDescriptorResult,
-  GrpcFilesHashMap,
-  GrpcServiceName,
-  TypedNextApiRequest,
-} from "./types";
+  ServerReflectionRequest,
+  ServerReflectionResponse,
+} from "../../gen/src/reflection_pb";
+import descriptor from "protobufjs/ext/descriptor";
+import { FileDescrptions, GrpcServiceName, TypedNextApiRequest } from "./types";
+import { reflectAsync } from "../../lib/reflect";
 
-export default function handler(
+export default async function handler(
   req: TypedNextApiRequest<{ services: GrpcServiceName[] }>,
-  res: NextApiResponse<any>
+  res: NextApiResponse<FileDescrptions>
 ) {
   const client = new ServerReflectionClient(
     "127.0.0.1:50051",
     credentials.createInsecure()
   );
-  const hashMap: GrpcFilesHashMap = Object.create(null);
+  const hashMap = Object.create(null);
 
-  const rpcReq = new ServerReflectionRequest();
-  rpcReq.clearListServices();
-  console.log(req.body);
-  req.body.services.flat().map((s) => {
-    const call = client.serverReflectionInfo();
-    call.on("error", (err) => {
-      call.end();
-      console.error(err);
-    });
-    call.on("data", (data) => {
-      call.end();
-      const fdRes = data.toObject() as FileDescriptorResult;
-      if (
-        fdRes.fileDescriptorResponse &&
-        fdRes.fileDescriptorResponse.fileDescriptorProtoList.length !== 0
-      ) {
-        const r = data.getFileDescriptorResponse()["array"].flat(Infinity);
-        const protoStr = r.map((x: Uint8Array) =>
-          descriptor.FileDescriptorProto.decode(x)
-        );
-        hashMap[
-          `${data.getOriginalRequest().toObject().fileContainingSymbol}`
-        ] = protoStr;
-        console.log(hashMap);
-      }
-    });
-    rpcReq.setFileContainingSymbol(s);
-    call.write(rpcReq);
+  await Promise.all(
+    req.body.services.map((s) => {
+      const rpcReq = new ServerReflectionRequest();
+      rpcReq.setFileContainingSymbol(s);
+      return reflectAsync<ServerReflectionResponse, any>(
+        client,
+        rpcReq,
+        (pbArr) => {
+          const res = pbArr.getFileDescriptorResponse();
+          if (!res) {
+            return;
+          }
+          const protoMsg = res
+            .getFileDescriptorProtoList()
+            .map((x) => descriptor.FileDescriptorProto.decode(x as Uint8Array));
+          const protoJSON = protoMsg.map((m) => m.toJSON());
+          protoJSON.map((pj) => {
+            pj.service &&
+              pj.service.map(
+                (ps: { name: string }) =>
+                  (hashMap[`${pj.package}.${ps.name}`] = pj)
+              );
+          });
+        }
+      );
+    })
+  ).then(() => {
+    return res.status(200).json({ files: hashMap });
   });
-  return res.status(200).json({ files: JSON.stringify(hashMap) });
 }
