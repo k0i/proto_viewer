@@ -1,7 +1,7 @@
 import type { NextPage } from "next";
 import Head from "next/head";
 import NextLink from "next/link";
-import { Link } from "@chakra-ui/react";
+import { Button, Link } from "@chakra-ui/react";
 import { useEffect, useState } from "react";
 import {
   Table,
@@ -18,12 +18,16 @@ import styles from "../styles/Home.module.css";
 import { GrpcServices, GrpcServiceName } from "./api/types";
 const Home: NextPage = () => {
   const [services, setServices] = useState<GrpcServiceName[]>([]);
-  const [files, setFiles] = useState<GrpcServiceName[]>([]);
+  const [files, setFiles] = useState<
+    { [k: string]: any } & {
+      name: string;
+      service: Array<{ method: Array<{ name: string }> }>;
+    }
+  >();
   useEffect(() => {
     const fetchAll = async () => {
       const svcs = await fetch("/api/services");
       const svcBody = (await svcs.json()) as GrpcServices;
-      console.log(svcBody);
       setServices(svcBody.services);
       const sbls = await fetch("/api/symbol", {
         method: "POST",
@@ -55,8 +59,8 @@ const Home: NextPage = () => {
             <Thead>
               <Tr>
                 <Th>Service</Th>
-                <Th>File</Th>
-                <Th>git remote</Th>
+                <Th>FilePath</Th>
+                <Th>Messages</Th>
               </Tr>
             </Thead>
             <Tbody>
@@ -66,6 +70,18 @@ const Home: NextPage = () => {
                     <NextLink href={`/${encodeURIComponent(s)}`} passHref>
                       <Link>{s}</Link>
                     </NextLink>
+                  </Td>
+                  <Td>{files && files[s].name}</Td>
+                  <Td>
+                    {files &&
+                      files[s].messageType.map((m: { name: string }) => (
+                        <p key={m.name}>{m.name}</p>
+                      ))}
+                  </Td>
+                  <Td>
+                    <Button colorScheme="teal" variant="outline">
+                      Call
+                    </Button>
                   </Td>
                 </Tr>
               ))}
