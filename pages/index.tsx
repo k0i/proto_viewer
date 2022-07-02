@@ -2,12 +2,11 @@ import type { NextPage } from "next";
 import Head from "next/head";
 import NextLink from "next/link";
 import { Button, Link } from "@chakra-ui/react";
-import { useEffect, useState } from "react";
+import { useEffect } from "react";
 import {
   Table,
   Thead,
   Tbody,
-  Tfoot,
   Tr,
   Th,
   Td,
@@ -15,15 +14,14 @@ import {
   TableContainer,
 } from "@chakra-ui/react";
 import styles from "../styles/Home.module.css";
-import { GrpcServices, GrpcServiceName } from "./api/types";
+import { FileDescriptions, GrpcServices } from "./api/types";
+import { ArrowForwardIcon } from "@chakra-ui/icons";
+import {  useRecoilState } from "recoil";
+import { serviceState } from "../atoms/service";
+import { fileState } from "../atoms/file";
 const Home: NextPage = () => {
-  const [services, setServices] = useState<GrpcServiceName[]>([]);
-  const [files, setFiles] = useState<
-    { [k: string]: any } & {
-      name: string;
-      service: Array<{ method: Array<{ name: string }> }>;
-    }
-  >();
+  const [services, setServices] = useRecoilState(serviceState)
+  const [files, setFiles] = useRecoilState(fileState);
   useEffect(() => {
     const fetchAll = async () => {
       const svcs = await fetch("/api/services");
@@ -37,7 +35,7 @@ const Home: NextPage = () => {
         },
         body: JSON.stringify(svcBody),
       });
-      const sblBody = await sbls.json();
+      const sblBody = await sbls.json() as FileDescriptions;
       setFiles(sblBody.files);
     };
     fetchAll();
@@ -71,31 +69,29 @@ const Home: NextPage = () => {
                       <Link>{s}</Link>
                     </NextLink>
                   </Td>
-                  <Td>{files && files[s].name}</Td>
+                  <Td>{Object.keys(files).length!==0 && files[s]?.name}</Td>
                   <Td>
-                    {files &&
-                      files[s].messageType.map((m: { name: string }) => (
+                    {Object.keys(files).length!==0 &&
+                      files[s]?.messageType.map((m: { name: string }) => (
                         <p key={m.name}>{m.name}</p>
                       ))}
                   </Td>
                   <Td>
-                    <Button colorScheme="teal" variant="outline">
+                  <NextLink href={`/${Object.keys(files).length!==0 && encodeURIComponent(files[s]?.name)}`} passHref>
+                    <Button as="a" colorScheme="teal" variant="outline" rightIcon={<ArrowForwardIcon />}>
                       Call
                     </Button>
+                    </NextLink>
                   </Td>
                 </Tr>
               ))}
             </Tbody>
           </Table>
         </TableContainer>
-        <>
-          {/* {files.map((f, i) => (
-            <div key={f + i}>{f}</div>
-          ))} */}
-        </>
       </main>
     </div>
   );
 };
+
 
 export default Home;
