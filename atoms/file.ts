@@ -13,3 +13,8 @@ export const fileShortSvcNameSelector = selector({
       .map((f) => f.service.map((s) => s.name))
       .flat(),
 });
+
+export const fileStateFilter = atom<string>({
+  key: "fileStateFilter",
+  default: "",
+});

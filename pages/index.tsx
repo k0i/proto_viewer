@@ -1,7 +1,16 @@
 import type { NextPage } from "next";
 import Head from "next/head";
 import NextLink from "next/link";
-import { Button, Link } from "@chakra-ui/react";
+import {
+  Box,
+  Button,
+  Link,
+  Tab,
+  TabList,
+  TabPanel,
+  TabPanels,
+  Tabs,
+} from "@chakra-ui/react";
 import { useEffect } from "react";
 import {
   Table,
@@ -12,16 +21,18 @@ import {
   Td,
   TableCaption,
   TableContainer,
+  Text,
 } from "@chakra-ui/react";
 import styles from "../styles/Home.module.css";
 import { FileDescriptions, GrpcServices } from "./api/types";
 import { ArrowForwardIcon } from "@chakra-ui/icons";
-import {  useRecoilState } from "recoil";
+import { useRecoilState } from "recoil";
 import { serviceState } from "../atoms/service";
-import { fileState } from "../atoms/file";
+import { fileState, fileStateFilter } from "../atoms/file";
 const Home: NextPage = () => {
-  const [services, setServices] = useRecoilState(serviceState)
+  const [services, setServices] = useRecoilState(serviceState);
   const [files, setFiles] = useRecoilState(fileState);
+  const [filter, setFilter] = useRecoilState(fileStateFilter);
   useEffect(() => {
     const fetchAll = async () => {
       const svcs = await fetch("/api/services");
@@ -35,8 +46,9 @@ const Home: NextPage = () => {
         },
         body: JSON.stringify(svcBody),
       });
-      const sblBody = await sbls.json() as FileDescriptions;
+      const sblBody = (await sbls.json()) as FileDescriptions;
       setFiles(sblBody.files);
+      console.log(sblBody.files);
     };
     fetchAll();
   }, []);
@@ -48,12 +60,10 @@ const Home: NextPage = () => {
         <link rel="icon" href="/favicon.ico" />
       </Head>
 
-      <main className={styles.main}>
-        <TableContainer>
-          <Table variant="striped" colorScheme="telegram" size="lg">
-            <TableCaption placement="top">
-              All Implemented Services
-            </TableCaption>
+      <Box className={styles.main} p="12" rounded="md" bg="white">
+        <TableContainer boxShadow="dark-lg" p="8" rounded="md" bg="white">
+          <Table size="lg">
+            <TableCaption placement="top">Reflection Info</TableCaption>
             <Thead>
               <Tr>
                 <Th>Service</Th>
@@ -63,24 +73,57 @@ const Home: NextPage = () => {
             </Thead>
             <Tbody>
               {services.map((s, i) => (
-                <Tr key={s + i}>
-                  <Td>
+                <Tr
+                  key={s + i}
+                  boxShadow={i % 2 === 0 ? "lg" : "xs"}
+                  p="6"
+                  rounded="md"
+                >
+                  <Td boxShadow={i % 2 === 1 ? "inner" : "xl"}>
                     <NextLink href={`/${encodeURIComponent(s)}`} passHref>
-                      <Link>{s}</Link>
+                      <Link>
+                        {Object.keys(files).length !== 0 &&
+                          files[s]?.service.map((m: { name: string }) => (
+                            <p key={m.name}>{m.name}</p>
+                          ))}
+                      </Link>
                     </NextLink>
                   </Td>
-                  <Td>{Object.keys(files).length!==0 && files[s]?.name}</Td>
-                  <Td>
-                    {Object.keys(files).length!==0 &&
-                      files[s]?.messageType.map((m: { name: string }) => (
-                        <p key={m.name}>{m.name}</p>
-                      ))}
+                  <Td>{Object.keys(files).length !== 0 && files[s]?.name}</Td>
+                  <Td boxShadow={i % 2 === 1 ? "lg" : "xl"}>
+                    {Object.keys(files).length !== 0 &&
+                      files[s]?.messageType
+                        .slice(0, 7)
+                        .map((m: { name: string }, i: number) =>
+                          i == 6 ? (
+                            <p>...</p>
+                          ) : (
+                            <>
+                              <Text as="i" key={m.name}>
+                                {m.name}
+                              </Text>
+                              <br />
+                            </>
+                          )
+                        )}
                   </Td>
                   <Td>
-                  <NextLink href={`/${Object.keys(files).length!==0 && encodeURIComponent(files[s]?.name)}`} passHref>
-                    <Button as="a" colorScheme="teal" variant="outline" rightIcon={<ArrowForwardIcon />}>
-                      Call
-                    </Button>
+                    <NextLink
+                      href={`/${
+                        Object.keys(files).length !== 0 &&
+                        encodeURIComponent(files[s]?.name)
+                      }`}
+                      passHref
+                    >
+                      <Button
+                        as="a"
+                        colorScheme={i % 2 === 1 ? "orange" : "teal"}
+                        variant="outline"
+                        rightIcon={<ArrowForwardIcon />}
+                        onClick={() => setFilter(s)}
+                      >
+                        Call
+                      </Button>
                     </NextLink>
                   </Td>
                 </Tr>
@@ -88,10 +131,9 @@ const Home: NextPage = () => {
             </Tbody>
           </Table>
         </TableContainer>
-      </main>
+      </Box>
     </div>
   );
 };
-
 
 export default Home;
