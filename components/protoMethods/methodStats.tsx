@@ -1,14 +1,4 @@
-import {
-  Badge,
-  Box,
-  Flex,
-  Spacer,
-  Stat,
-  StatHelpText,
-  StatLabel,
-  StatNumber,
-  VStack,
-} from "@chakra-ui/react";
+import { Badge, Box, Spacer, Stat, StatLabel, VStack } from "@chakra-ui/react";
 import React from "react";
 
 export type Method = {

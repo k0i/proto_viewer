@@ -16,6 +16,7 @@ import {
   Spacer,
 } from "@chakra-ui/react";
 import { FaReact } from "react-icons/fa";
+import { DiCode } from "react-icons/di";
 import { IconType } from "react-icons";
 import { GrpcServiceName } from "../../pages/api/types";
 import { ReactJSXElement } from "@emotion/react/types/jsx-namespace";
@@ -94,7 +95,7 @@ const SidebarContent = ({
             i !== 21 ? (
               <NavItem
                 key={m}
-                icon={FaReact}
+                icon={DiCode}
                 _hover={{
                   bg: "cyan.200",
                   color: "white",

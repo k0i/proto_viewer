@@ -18,3 +18,8 @@ export const fileStateFilter = atom<string>({
   key: "fileStateFilter",
   default: "",
 });
+
+export const fileMethodFilter = atom<string>({
+  key: "fileMethodFilter",
+  default: "",
+});

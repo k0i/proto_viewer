@@ -15,6 +15,7 @@
     "@emotion/styled": "^11",
     "@grpc/grpc-js": "^1.6.7",
     "@grpc/proto-loader": "^0.6.13",
+    "body-parser": "^1.20.0",
     "framer-motion": "^6",
     "fs": "^0.0.1-security",
     "google-protobuf": "^3.20.1",
@@ -28,6 +29,7 @@
     "recoil": "^0.7.4"
   },
   "devDependencies": {
+    "@types/body-parser": "^1.19.2",
     "@types/node": "18.0.0",
     "@types/react": "18.0.14",
     "@types/react-dom": "18.0.5",

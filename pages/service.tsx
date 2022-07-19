@@ -8,14 +8,7 @@ import {
   fileState,
   fileStateFilter,
 } from "../atoms/file";
-import {
-  Box,
-  SimpleGrid,
-  Stat,
-  StatHelpText,
-  StatLabel,
-  StatNumber,
-} from "@chakra-ui/react";
+import { SimpleGrid, useNumberInput } from "@chakra-ui/react";
 import MethodStats from "../components/protoMethods/methodStats";
 const Service: NextPage = (props: any) => {
   const shortSvcName = useRecoilValue(fileShortSvcNameSelector);
@@ -29,6 +22,22 @@ const Service: NextPage = (props: any) => {
   );
   const methods = protoInfo?.service.map((s) => s.method).flat();
   console.log(methods);
+  const {
+    getInputProps,
+    getIncrementButtonProps,
+    getDecrementButtonProps,
+    valueAsNumber,
+  } = useNumberInput({
+    step: 0.01,
+    defaultValue: 1.53,
+    min: 1,
+    max: 6,
+    precision: 2,
+  });
+
+  const inc = getIncrementButtonProps();
+  const dec = getDecrementButtonProps();
+  const input = getInputProps();
   return (
     <Sidebar services={shortSvcName} messages={messageTypes}>
       <div className={styles.container}>

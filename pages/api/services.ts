@@ -25,6 +25,7 @@ export default async function handler(
       rpcReq,
       (str) => {
         const res = str.getListServicesResponse();
+        console.log(res?.toObject());
         return res
           ? { services: res.getServiceList().map((s) => s.getName()) }
           : { services: [] };
